@@ -70,6 +70,7 @@ function timer.cancel_message(obj, message)
 end
 
 function timer.cancel_id(obj, id)
+	assert(type(id) == "number")
 	local t = session[id]
 	if objects[t.id] == obj then
 		t.id = nil
