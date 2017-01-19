@@ -28,3 +28,5 @@ Lua 封装库构造了唯一一个 C 管理器对象，由 __gc 销毁它，使�
 `timer.stop(obj)` 取消当前附着在 obj 上所有的定时器消息。
 
 `timer.update(elapse, func, err_handle)` 由框架驱动，执行之前订阅的定时消息。elapse 是一个单位为秒的浮点数，表示从当前时间开始流逝了多长时间。这此期间内的定时消息会依次调用 func(obj, message) 。在 func 函数中，可以调用 timer.* 其它函数去订阅/取消消息。 err_handle(errstr) 默认为 print ，输出错误信息。
+
+`timer.now()` 可以取得当前时间。
