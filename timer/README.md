@@ -19,11 +19,11 @@ C 库的接口包含在 timer.core 中，并不直接调用。C 库可以通过 
 
 Lua 封装库构造了唯一一个 C 管理器对象，由 __gc 销毁它，使用时不用关心。
 
-`timer.timeout(obj, message, interval)` 用于创建一个一次性的定时消息。obj 应该为一个 table 或 full userdata ，message 为一个字符串， interval 是一个浮点数，单位是秒。定时器内部精度为 1/100 秒。注：message 应由调用者保证每个 obj 下唯一。
+`timer.timeout(obj, message, interval)` 用于创建一个一次性的定时消息。obj 应该为一个 table 或 full userdata ，message 为一个字符串， interval 是一个浮点数，单位是秒。定时器内部精度为 1/100 秒。
 
 `timer.timeloop(obj, message, interval)` 用于创建一个持续触发的定时消息。参数和 timer.timeout 含义相同。
 
-`timer.cancel(obj, message)` 取消附着在 obj 上的定时器消息。如果有同名 message 消息，销毁其中一个（具体哪个未定义）。
+`timer.cancel(obj, message)` 取消附着在 obj 上的定时器消息。如果有同名 message 消息，销毁全部。
 
 `timer.stop(obj)` 取消当前附着在 obj 上所有的定时器消息。
 

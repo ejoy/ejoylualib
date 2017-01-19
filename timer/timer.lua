@@ -55,7 +55,6 @@ function timer.cancel(obj, message)
 	for _, t in pairs(session) do
 		if t.id == obj_id and t.message == message then
 			t.message = nil
-			break
 		end
 	end
 end
