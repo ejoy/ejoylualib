@@ -3,7 +3,7 @@ local core = require "timer.core"
 local cobj = core.create()
 local timer = setmetatable({}, { __gc = function() core.release(cobj) end })
 
-local precision = 1000
+local precision = 100
 local time = 0
 local floor = math.floor
 
@@ -76,7 +76,7 @@ end
 
 local traceback = debug.traceback
 local tmp = {}
--- elapse is a real number, 1 for a second. precision is 0.001s
+-- elapse is a real number, 1 for a second. precision is 0.01s
 function timer.update(elapse, func, err_handle)
 	err_handle = err_handle or print
 	local lasttime = floor(time * precision)
