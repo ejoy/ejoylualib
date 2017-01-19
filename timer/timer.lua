@@ -11,20 +11,27 @@ function timer.now()
 	return time
 end
 
+local objects = {}
+local objects_id = 0
+
 local function new_object(self, k)
+	if k == nil then
+		return nil
+	end
 	local t = type(k)
 	if t == "number" then
 		return nil
 	end
 	-- k is object
 	assert(t == "table" or t == "userdata")
-	local id = #self + 1
-	self[id] = k
-	self[k] = id
-	return id
+	-- max objects_id 2^52
+	objects_id = objects_id + 1
+	self[objects_id] = k
+	self[k] = objects_id
+	return objects_id
 end
 
-local objects = setmetatable({} , { __mode = "kv", __index = new_object })
+setmetatable(objects , { __mode = "kv", __index = new_object })
 
 local session = {}
 local session_id = 0
@@ -41,6 +48,7 @@ function timer.timeout(obj, message, ti, arg)
 	local timer_id = add_timer(floor(ti * precision))
 	local obj_id = objects[obj]
 	session[timer_id] = { id = obj_id, message = message, arg = arg }
+	return timer_id
 end
 
 function timer.timeloop(obj, message, interval, arg)
@@ -49,24 +57,24 @@ function timer.timeloop(obj, message, interval, arg)
 	session[timer_id] = { id = obj_id, message = message, start = time, interval = interval, tick = 1 , arg = arg }
 end
 
-function timer.cancel(obj, message, arg)
+function timer.cancel_message(obj, message)
 	-- It's O(n) , optimize when need
 	local obj_id = objects[obj]
-	if arg then
-		for _, t in pairs(session) do
-			if t.id == obj_id and t.message == message and t.arg == arg then
-				t.message = nil
-				t.arg = nil
-				break
-			end
+	for _, t in pairs(session) do
+		if t.id == obj_id and t.message == message then
+			t.id = nil
+			t.message = nil
+			t.arg = nil
 		end
-	else
-		for _, t in pairs(session) do
-			if t.id == obj_id and t.message == message then
-				t.message = nil
-				t.arg = nil
-			end
-		end
+	end
+end
+
+function timer.cancel_id(obj, id)
+	local t = session[id]
+	if objects[t.id] == obj then
+		t.id = nil
+		t.message = nil
+		t.arg = nil
 	end
 end
 
@@ -74,16 +82,6 @@ function timer.stop(obj)
 	local obj_id = objects[obj]
 	objects[obj] = nil
 	objects[obj_id] = nil
-
-	-- It's O(n) , optimize when need
-	local obj_id = objects[obj]
-	for _, t in pairs(session) do
-		if t.id == obj_id then
-			t.id = nil
-			t.message = nil
-			t.arg = nil
-		end
-	end
 end
 
 local traceback = debug.traceback
@@ -105,7 +103,7 @@ function timer.update(elapse, func, err_handle)
 			local t = session[id]
 			session[id] = nil
 			local obj = objects[t.id]
-			if obj and t.message then
+			if obj then
 				local ok, err = xpcall(func, traceback, obj, t.message, t.arg)
 				if not ok then
 					err_handle(err)
