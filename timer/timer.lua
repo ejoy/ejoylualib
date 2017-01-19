@@ -37,24 +37,35 @@ local function add_timer(ti)
 	return session_id
 end
 
-function timer.timeout(obj, message, ti)
+function timer.timeout(obj, message, ti, arg)
 	local timer_id = add_timer(floor(ti * precision))
 	local obj_id = objects[obj]
-	session[timer_id] = { id = obj_id, message = message }
+	session[timer_id] = { id = obj_id, message = message, arg = arg }
 end
 
-function timer.timeloop(obj, message, interval)
+function timer.timeloop(obj, message, interval, arg)
 	local timer_id = add_timer(floor(interval * precision))
 	local obj_id = objects[obj]
-	session[timer_id] = { id = obj_id, message = message, start = time, interval = interval, tick = 1 }
+	session[timer_id] = { id = obj_id, message = message, start = time, interval = interval, tick = 1 , arg = arg }
 end
 
-function timer.cancel(obj, message)
+function timer.cancel(obj, message, arg)
 	-- It's O(n) , optimize when need
 	local obj_id = objects[obj]
-	for _, t in pairs(session) do
-		if t.id == obj_id and t.message == message then
-			t.message = nil
+	if arg then
+		for _, t in pairs(session) do
+			if t.id == obj_id and t.message == message and t.arg == arg then
+				t.message = nil
+				t.arg = nil
+				break
+			end
+		end
+	else
+		for _, t in pairs(session) do
+			if t.id == obj_id and t.message == message then
+				t.message = nil
+				t.arg = nil
+			end
 		end
 	end
 end
@@ -69,6 +80,8 @@ function timer.stop(obj)
 	for _, t in pairs(session) do
 		if t.id == obj_id then
 			t.id = nil
+			t.message = nil
+			t.arg = nil
 		end
 	end
 end
@@ -93,7 +106,7 @@ function timer.update(elapse, func, err_handle)
 			session[id] = nil
 			local obj = objects[t.id]
 			if obj and t.message then
-				local ok, err = xpcall(func, traceback, obj, t.message)
+				local ok, err = xpcall(func, traceback, obj, t.message, t.arg)
 				if not ok then
 					err_handle(err)
 				end
