@@ -55,6 +55,7 @@ function timer.timeloop(obj, message, interval, arg)
 	local timer_id = add_timer(floor(interval * precision))
 	local obj_id = objects[obj]
 	session[timer_id] = { id = obj_id, message = message, start = time, interval = interval, tick = 1 , arg = arg }
+	return timer_id
 end
 
 function timer.cancel_message(obj, message)
@@ -65,6 +66,7 @@ function timer.cancel_message(obj, message)
 			t.id = nil
 			t.message = nil
 			t.arg = nil
+			t.interval = nil
 		end
 	end
 end
@@ -76,6 +78,7 @@ function timer.cancel_id(obj, id)
 		t.id = nil
 		t.message = nil
 		t.arg = nil
+		t.interval = nil
 	end
 end
 
@@ -102,19 +105,21 @@ function timer.update(elapse, func, err_handle)
 		for i=1,n do
 			local id = tmp[i]
 			local t = session[id]
-			session[id] = nil
 			local obj = objects[t.id]
 			if obj then
 				local ok, err = xpcall(func, traceback, obj, t.message, t.arg)
-				if not ok then
-					err_handle(err)
-				end
 				if t.interval then
 					t.tick = t.tick + 1
 					local next_time = t.start + t.tick * t.interval
-					local new_id = add_timer(floor((next_time - time) * precision))
-					session[new_id] = t
+					core.add(cobj, id, floor((next_time - time) * precision))
+				else
+					session[id] = nil
 				end
+				if not ok then
+					err_handle(err)
+				end
+			else
+				session[id] = nil
 			end
 		end
 	until tick == 0
