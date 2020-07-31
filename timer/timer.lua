@@ -107,7 +107,7 @@ function timer.update(elapse, func, err_handle)
 			if obj then
 				local ok, err = xpcall(func, traceback, obj, t.message, t.arg)
 				if not ok then
-					err_handle(err)
+					err_handle(err, obj, t.message, t.arg)
 				end
 				if t.interval then
 					t.tick = t.tick + 1
