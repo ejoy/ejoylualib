@@ -9,7 +9,7 @@ end
 local obj_A = create_obj "A"
 local obj_B = create_obj "B"
 
-timer.timeloop(obj_A, "timerA", 0.7)
+local loop_id = timer.timeloop(obj_A, "timerA", 0.7)
 timer.timeout(obj_B, "stop", 3.6 , obj_A)
 timer.timeout(obj_B, "cancel", 3.7, "timerB")
 timer.timeout(obj_B, "timerB", 4)
@@ -33,5 +33,6 @@ end
 
 timer.cancel_id(obj_B, id)
 timer.update(2.9, execute)
+timer.cancel_id(obj_A, loop_id)
 timer.update(0.5, execute)
 timer.update(0.6, execute)
