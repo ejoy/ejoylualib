@@ -116,7 +116,7 @@ function timer.update(elapse, func, err_handle)
 					session[id] = nil
 				end
 				if not ok then
-					err_handle(err)
+					err_handle(err, obj, t.message, t.arg)
 				end
 			else
 				session[id] = nil
